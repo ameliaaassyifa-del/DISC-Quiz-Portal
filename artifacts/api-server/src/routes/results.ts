@@ -1,20 +1,22 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
-import { db, quizResultsTable } from "@workspace/db";
-import {
-  SubmitResultBody,
-  GetResultParams,
-  DeleteResultParams,
-} from "@workspace/api-zod";
+import { supabase, rowToResult, type DiscResultRow } from "../lib/supabase";
+import { SubmitResultBody, GetResultParams, DeleteResultParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/results", async (req, res): Promise<void> => {
-  const results = await db
-    .select()
-    .from(quizResultsTable)
-    .orderBy(sql`${quizResultsTable.created_at} desc`);
-  res.json(results);
+  const { data, error } = await supabase
+    .from("disc_results")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    req.log.error({ error }, "Failed to fetch results");
+    res.status(500).json({ error: error.message });
+    return;
+  }
+
+  res.json((data as DiscResultRow[]).map(rowToResult));
 });
 
 router.post("/results", async (req, res): Promise<void> => {
@@ -25,39 +27,50 @@ router.post("/results", async (req, res): Promise<void> => {
     return;
   }
 
-  const [result] = await db
-    .insert(quizResultsTable)
-    .values({
-      name: parsed.data.name,
-      dominance: parsed.data.dominance,
-      influence: parsed.data.influence,
-      steadiness: parsed.data.steadiness,
-      conscientiousness: parsed.data.conscientiousness,
-      disc_type: parsed.data.disc_type,
-    })
-    .returning();
+  const { name, dominance, influence, steadiness, conscientiousness, disc_type } = parsed.data;
 
-  res.status(201).json(result);
+  const { data, error } = await supabase
+    .from("disc_results")
+    .insert({
+      name,
+      dominant: disc_type,
+      scores: { D: dominance, I: influence, S: steadiness, C: conscientiousness },
+    })
+    .select()
+    .single();
+
+  if (error) {
+    req.log.error({ error }, "Failed to insert result");
+    res.status(500).json({ error: error.message });
+    return;
+  }
+
+  res.status(201).json(rowToResult(data as DiscResultRow));
 });
 
 router.get("/results/stats", async (_req, res): Promise<void> => {
-  const total = await db
-    .select({ count: sql<number>`cast(count(*) as int)` })
-    .from(quizResultsTable);
+  const { data, error } = await supabase
+    .from("disc_results")
+    .select("dominant");
 
-  const byType = await db
-    .select({
-      disc_type: quizResultsTable.disc_type,
-      count: sql<number>`cast(count(*) as int)`,
-    })
-    .from(quizResultsTable)
-    .groupBy(quizResultsTable.disc_type)
-    .orderBy(sql`count(*) desc`);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
 
-  res.json({
-    total: total[0]?.count ?? 0,
-    by_type: byType,
-  });
+  const rows = data as { dominant: string }[];
+  const total = rows.length;
+  const counts: Record<string, number> = {};
+
+  for (const row of rows) {
+    counts[row.dominant] = (counts[row.dominant] ?? 0) + 1;
+  }
+
+  const by_type = Object.entries(counts)
+    .map(([disc_type, count]) => ({ disc_type, count }))
+    .sort((a, b) => b.count - a.count);
+
+  res.json({ total, by_type });
 });
 
 router.get("/results/:id", async (req, res): Promise<void> => {
@@ -67,17 +80,18 @@ router.get("/results/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [result] = await db
-    .select()
-    .from(quizResultsTable)
-    .where(eq(quizResultsTable.id, params.data.id));
+  const { data, error } = await supabase
+    .from("disc_results")
+    .select("*")
+    .eq("id", params.data.id)
+    .single();
 
-  if (!result) {
+  if (error || !data) {
     res.status(404).json({ error: "Result not found" });
     return;
   }
 
-  res.json(result);
+  res.json(rowToResult(data as DiscResultRow));
 });
 
 router.delete("/results/:id", async (req, res): Promise<void> => {
@@ -87,9 +101,15 @@ router.delete("/results/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  await db
-    .delete(quizResultsTable)
-    .where(eq(quizResultsTable.id, params.data.id));
+  const { error } = await supabase
+    .from("disc_results")
+    .delete()
+    .eq("id", params.data.id);
+
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
 
   res.sendStatus(204);
 });
