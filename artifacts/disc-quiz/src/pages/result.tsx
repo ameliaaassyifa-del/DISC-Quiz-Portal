@@ -1,52 +1,49 @@
-import { useLocation } from "wouter";
 import { useGetResult } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import { Loader2, ArrowRight } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Loader2 } from "lucide-react";
 
 const DISC_INFO = {
   D: {
-    title: "Dominance",
-    subtitle: "The Director",
+    title: "Dominant",
+    subtitle: "Si Pemimpin",
     color: "bg-red-500",
     bgLight: "bg-red-50 dark:bg-red-950/20",
     textColor: "text-red-700 dark:text-red-400",
-    description: "You are driven, competitive, and decisive. You focus on results, overcoming challenges, and taking action. You likely prefer a fast-paced environment where you can take charge.",
-    traits: ["Direct", "Results-oriented", "Firm", "Strong-willed", "Forceful"]
+    description: "Kamu adalah pribadi yang penuh semangat, kompetitif, dan tegas. Kamu fokus pada hasil, mengatasi tantangan, dan mengambil tindakan nyata. Kamu cenderung menyukai lingkungan yang cepat di mana kamu bisa memimpin.",
+    traits: ["Tegas", "Berorientasi hasil", "Teguh", "Berkemauan kuat", "Berani"]
   },
   I: {
-    title: "Influence",
-    subtitle: "The Socializer",
+    title: "Inspiring",
+    subtitle: "Si Motivator",
     color: "bg-yellow-500",
     bgLight: "bg-yellow-50 dark:bg-yellow-950/20",
     textColor: "text-yellow-700 dark:text-yellow-400",
-    description: "You are enthusiastic, optimistic, and persuasive. You thrive in social situations, love collaboration, and naturally motivate those around you. You value relationships and expression.",
-    traits: ["Outgoing", "Enthusiastic", "Optimistic", "High-spirited", "Lively"]
+    description: "Kamu adalah pribadi yang antusias, optimis, dan persuasif. Kamu berkembang dalam situasi sosial, menyukai kolaborasi, dan secara alami memotivasi orang-orang di sekitarmu. Kamu sangat menghargai hubungan dan ekspresi diri.",
+    traits: ["Terbuka", "Antusias", "Optimis", "Bersemangat", "Hidup"]
   },
   S: {
-    title: "Steadiness",
-    subtitle: "The Supporter",
+    title: "Steady",
+    subtitle: "Si Penyokong",
     color: "bg-green-500",
     bgLight: "bg-green-50 dark:bg-green-950/20",
     textColor: "text-green-700 dark:text-green-400",
-    description: "You are dependable, patient, and cooperative. You value stability, harmony, and consistency. You are a great listener and a loyal team member who prefers a structured environment.",
-    traits: ["Even-tempered", "Accommodating", "Patient", "Humble", "Tactful"]
+    description: "Kamu adalah pribadi yang dapat diandalkan, sabar, dan kooperatif. Kamu menghargai stabilitas, keharmonisan, dan konsistensi. Kamu adalah pendengar yang baik dan anggota tim yang setia yang lebih menyukai lingkungan yang terstruktur.",
+    traits: ["Tenang", "Akomodatif", "Sabar", "Rendah hati", "Bijaksana"]
   },
   C: {
-    title: "Conscientiousness",
-    subtitle: "The Thinker",
+    title: "Compliant",
+    subtitle: "Si Pemikir",
     color: "bg-blue-500",
     bgLight: "bg-blue-50 dark:bg-blue-950/20",
     textColor: "text-blue-700 dark:text-blue-400",
-    description: "You are analytical, detail-oriented, and systematic. You prioritize accuracy, quality, and expertise. You prefer working in environments with clear expectations and time to do things right.",
-    traits: ["Analytical", "Reserved", "Precise", "Private", "Systematic"]
+    description: "Kamu adalah pribadi yang analitis, teliti, dan sistematis. Kamu mengutamakan akurasi, kualitas, dan keahlian. Kamu lebih suka bekerja di lingkungan dengan ekspektasi yang jelas dan waktu yang cukup untuk melakukan hal-hal dengan benar.",
+    traits: ["Analitis", "Cermat", "Presisi", "Terorganisir", "Sistematis"]
   }
 } as const;
 
 export default function Result() {
-  const [location] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const idStr = searchParams.get("id");
   const id = idStr ? parseInt(idStr, 10) : null;
@@ -60,9 +57,9 @@ export default function Result() {
   if (!id) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <h2 className="text-2xl font-bold mb-4">No result found</h2>
+        <h2 className="text-2xl font-bold mb-4">Hasil tidak ditemukan</h2>
         <Link href="/">
-          <Button>Go to Home</Button>
+          <Button>Ke Beranda</Button>
         </Link>
       </div>
     );
@@ -79,9 +76,9 @@ export default function Result() {
   if (isError || !result) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <h2 className="text-2xl font-bold mb-4">Error loading result</h2>
+        <h2 className="text-2xl font-bold mb-4">Gagal memuat hasil</h2>
         <Link href="/">
-          <Button>Start Over</Button>
+          <Button>Mulai Ulang</Button>
         </Link>
       </div>
     );
@@ -106,24 +103,24 @@ export default function Result() {
         className="space-y-8"
       >
         <div className="text-center space-y-4 mb-12">
-          <h1 className="text-3xl font-medium text-muted-foreground">
-            {result.name}, your primary style is
+          <h1 className="text-3xl font-medium text-muted-foreground" data-testid="text-result-name">
+            {result.name}, gaya utamamu adalah
           </h1>
           <div className="flex flex-col items-center justify-center gap-2">
-            <div className={`w-32 h-32 rounded-full flex items-center justify-center text-6xl font-bold text-white shadow-lg ${info.color}`}>
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center text-6xl font-bold text-white shadow-lg ${info.color}`} data-testid="text-disc-type">
               {type}
             </div>
-            <h2 className="text-4xl font-bold mt-4">{info.title}</h2>
+            <h2 className="text-4xl font-bold mt-4" data-testid="text-disc-title">{info.title}</h2>
             <p className={`text-xl font-medium ${info.textColor}`}>{info.subtitle}</p>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className={`p-8 rounded-2xl border ${info.bgLight}`}>
-            <h3 className="text-xl font-semibold mb-4">About You</h3>
+            <h3 className="text-xl font-semibold mb-4">Tentang Kamu</h3>
             <p className="text-lg leading-relaxed">{info.description}</p>
             
-            <h3 className="text-lg font-semibold mt-8 mb-4">Key Traits</h3>
+            <h3 className="text-lg font-semibold mt-8 mb-4">Ciri Utama</h3>
             <div className="flex flex-wrap gap-2">
               {info.traits.map(trait => (
                 <span key={trait} className="px-3 py-1 bg-background/50 rounded-full text-sm font-medium border">
@@ -134,20 +131,20 @@ export default function Result() {
           </div>
 
           <div className="p-8 rounded-2xl border bg-card">
-            <h3 className="text-xl font-semibold mb-6">Your Score Breakdown</h3>
+            <h3 className="text-xl font-semibold mb-6">Rincian Skormu</h3>
             <div className="space-y-6">
-              <ScoreBar label="Dominance (D)" percent={percentages.D} color="bg-red-500" />
-              <ScoreBar label="Influence (I)" percent={percentages.I} color="bg-yellow-500" />
-              <ScoreBar label="Steadiness (S)" percent={percentages.S} color="bg-green-500" />
-              <ScoreBar label="Conscientiousness (C)" percent={percentages.C} color="bg-blue-500" />
+              <ScoreBar label="Dominant (D)" percent={percentages.D} color="bg-red-500" />
+              <ScoreBar label="Inspiring (I)" percent={percentages.I} color="bg-yellow-500" />
+              <ScoreBar label="Steady (S)" percent={percentages.S} color="bg-green-500" />
+              <ScoreBar label="Compliant (C)" percent={percentages.C} color="bg-blue-500" />
             </div>
           </div>
         </div>
 
         <div className="flex justify-center pt-8">
           <Link href="/">
-            <Button variant="outline" size="lg">
-              Take the Quiz Again
+            <Button variant="outline" size="lg" data-testid="button-retake">
+              Ikuti Kuis Lagi
             </Button>
           </Link>
         </div>

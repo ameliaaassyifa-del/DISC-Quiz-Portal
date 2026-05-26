@@ -1,11 +1,19 @@
 import { useListResults, useGetStats, useDeleteResult, getListResultsQueryKey, getGetStatsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const TYPE_LABELS: Record<string, string> = {
+  D: "Dominant",
+  I: "Inspiring",
+  S: "Steady",
+  C: "Compliant"
+};
 
 export default function Admin() {
   const queryClient = useQueryClient();
@@ -17,7 +25,7 @@ export default function Admin() {
   const deleteMutation = useDeleteResult();
 
   const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this result?")) return;
+    if (!window.confirm("Apakah kamu yakin ingin menghapus hasil ini?")) return;
 
     deleteMutation.mutate(
       { id },
@@ -25,10 +33,10 @@ export default function Admin() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListResultsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
-          toast({ title: "Result deleted successfully" });
+          toast({ title: "Hasil berhasil dihapus" });
         },
         onError: () => {
-          toast({ title: "Failed to delete result", variant: "destructive" });
+          toast({ title: "Gagal menghapus hasil", variant: "destructive" });
         }
       }
     );
@@ -55,17 +63,17 @@ export default function Admin() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-6xl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight" data-testid="text-admin-title">Dasbor Admin</h1>
       </div>
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Responses</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Responden</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.total}</div>
+              <div className="text-3xl font-bold" data-testid="text-total-count">{stats.total}</div>
             </CardContent>
           </Card>
           
@@ -77,11 +85,11 @@ export default function Admin() {
             return (
               <Card key={type}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Type {type}</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{TYPE_LABELS[type]}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{count}</div>
-                  <p className="text-xs text-muted-foreground">{percent}% of total</p>
+                  <div className="text-2xl font-bold" data-testid={`text-count-${type}`}>{count}</div>
+                  <p className="text-xs text-muted-foreground">{percent}% dari total</p>
                 </CardContent>
               </Card>
             );
@@ -91,7 +99,7 @@ export default function Admin() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Results</CardTitle>
+          <CardTitle>Hasil Terbaru</CardTitle>
         </CardHeader>
         <CardContent>
           {results && results.length > 0 ? (
@@ -99,23 +107,23 @@ export default function Admin() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Scores (D/I/S/C)</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Nama</TableHead>
+                    <TableHead>Tipe</TableHead>
+                    <TableHead className="text-right">Skor (D/I/S/C)</TableHead>
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {results.map((result) => (
-                    <TableRow key={result.id}>
+                    <TableRow key={result.id} data-testid={`row-result-${result.id}`}>
                       <TableCell className="whitespace-nowrap">
-                        {format(new Date(result.created_at), "MMM d, yyyy")}
+                        {format(new Date(result.created_at), "d MMM yyyy", { locale: localeId })}
                       </TableCell>
                       <TableCell className="font-medium">{result.name}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStyleForType(result.disc_type)}`}>
-                          {result.disc_type}
+                          {result.disc_type} - {TYPE_LABELS[result.disc_type] ?? result.disc_type}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">
@@ -125,6 +133,7 @@ export default function Admin() {
                         <Button 
                           variant="ghost" 
                           size="icon"
+                          data-testid={`button-delete-${result.id}`}
                           onClick={() => handleDelete(result.id)}
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         >
@@ -137,8 +146,8 @@ export default function Admin() {
               </Table>
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              No results found yet.
+            <div className="text-center py-12 text-muted-foreground" data-testid="text-empty-results">
+              Belum ada hasil yang ditemukan.
             </div>
           )}
         </CardContent>

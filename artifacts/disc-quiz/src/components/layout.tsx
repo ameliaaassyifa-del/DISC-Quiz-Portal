@@ -21,7 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <footer className="border-t py-6 md:py-8 mt-auto">
         <div className="container mx-auto flex flex-col items-center justify-center gap-4 px-4 md:px-6 text-center text-sm text-muted-foreground">
           <p>
-            This quiz is designed for self-discovery and personal growth.
+            Kuis ini dirancang untuk penemuan diri dan pengembangan pribadi.
           </p>
         </div>
       </footer>

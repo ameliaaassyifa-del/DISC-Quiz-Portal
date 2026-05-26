@@ -8,7 +8,7 @@ export const quizResultsTable = pgTable("quiz_results", {
   dominance: integer("dominance").notNull(),
   influence: integer("influence").notNull(),
   steadiness: integer("steadiness").notNull(),
-  conscientiousness: integer("conscientiousness").notNull(),
+  compliant: integer("compliant").notNull(),
   disc_type: text("disc_type").notNull(),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

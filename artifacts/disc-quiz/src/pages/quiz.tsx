@@ -13,93 +13,93 @@ type Answer = "D" | "I" | "S" | "C";
 
 const QUESTIONS = [
   {
-    text: "In a group project, I usually...",
+    text: "Dalam proyek kelompok, saya biasanya...",
     options: [
-      { text: "Take charge and lead", type: "D" },
-      { text: "Keep everyone motivated", type: "I" },
-      { text: "Support whoever needs help", type: "S" },
-      { text: "Plan everything carefully", type: "C" }
+      { text: "Mengambil kendali dan memimpin", type: "D" },
+      { text: "Menjaga semangat semua orang", type: "I" },
+      { text: "Mendukung siapa pun yang membutuhkan bantuan", type: "S" },
+      { text: "Merencanakan segalanya dengan cermat", type: "C" }
     ]
   },
   {
-    text: "When facing a challenge, I...",
+    text: "Ketika menghadapi tantangan, saya...",
     options: [
-      { text: "Attack it head-on", type: "D" },
-      { text: "Rally others for support", type: "I" },
-      { text: "Take a steady methodical approach", type: "S" },
-      { text: "Research every angle first", type: "C" }
+      { text: "Menghadapinya langsung", type: "D" },
+      { text: "Mengajak orang lain untuk bersama", type: "I" },
+      { text: "Mengambil pendekatan yang tenang dan metodis", type: "S" },
+      { text: "Meneliti semua sudut pandang terlebih dahulu", type: "C" }
     ]
   },
   {
-    text: "My ideal work environment is...",
+    text: "Lingkungan kerja ideal saya adalah...",
     options: [
-      { text: "Fast-paced and competitive", type: "D" },
-      { text: "Social and collaborative", type: "I" },
-      { text: "Stable and predictable", type: "S" },
-      { text: "Structured and precise", type: "C" }
+      { text: "Cepat dan kompetitif", type: "D" },
+      { text: "Sosial dan kolaboratif", type: "I" },
+      { text: "Stabil dan dapat diprediksi", type: "S" },
+      { text: "Terstruktur dan presisi", type: "C" }
     ]
   },
   {
-    text: "People describe me as...",
+    text: "Orang-orang menggambarkan saya sebagai...",
     options: [
-      { text: "Assertive and direct", type: "D" },
-      { text: "Enthusiastic and fun", type: "I" },
-      { text: "Patient and dependable", type: "S" },
-      { text: "Careful and thorough", type: "C" }
+      { text: "Tegas dan langsung", type: "D" },
+      { text: "Antusias dan menyenangkan", type: "I" },
+      { text: "Sabar dan dapat diandalkan", type: "S" },
+      { text: "Teliti dan menyeluruh", type: "C" }
     ]
   },
   {
-    text: "When making decisions, I...",
+    text: "Ketika mengambil keputusan, saya...",
     options: [
-      { text: "Decide quickly and move on", type: "D" },
-      { text: "Ask for input from others", type: "I" },
-      { text: "Take time to consider impact on people", type: "S" },
-      { text: "Analyze all the data first", type: "C" }
+      { text: "Memutuskan dengan cepat dan melanjutkan", type: "D" },
+      { text: "Meminta masukan dari orang lain", type: "I" },
+      { text: "Meluangkan waktu untuk mempertimbangkan dampaknya pada orang", type: "S" },
+      { text: "Menganalisis semua data terlebih dahulu", type: "C" }
     ]
   },
   {
-    text: "I get energized by...",
+    text: "Saya mendapat energi dari...",
     options: [
-      { text: "Winning and achieving results", type: "D" },
-      { text: "Being around people", type: "I" },
-      { text: "Helping others succeed", type: "S" },
-      { text: "Solving complex problems", type: "C" }
+      { text: "Menang dan mencapai hasil", type: "D" },
+      { text: "Berada di sekitar orang lain", type: "I" },
+      { text: "Membantu orang lain sukses", type: "S" },
+      { text: "Memecahkan masalah yang kompleks", type: "C" }
     ]
   },
   {
-    text: "Under pressure, I tend to...",
+    text: "Di bawah tekanan, saya cenderung...",
     options: [
-      { text: "Become more demanding", type: "D" },
-      { text: "Become more talkative", type: "I" },
-      { text: "Withdraw and become quiet", type: "S" },
-      { text: "Become overly critical", type: "C" }
+      { text: "Menjadi lebih menuntut", type: "D" },
+      { text: "Menjadi lebih banyak bicara", type: "I" },
+      { text: "Menarik diri dan menjadi pendiam", type: "S" },
+      { text: "Menjadi terlalu kritis", type: "C" }
     ]
   },
   {
-    text: "My biggest strength is...",
+    text: "Kekuatan terbesar saya adalah...",
     options: [
-      { text: "Getting things done", type: "D" },
-      { text: "Inspiring others", type: "I" },
-      { text: "Building trust", type: "S" },
-      { text: "Ensuring accuracy", type: "C" }
+      { text: "Menyelesaikan pekerjaan", type: "D" },
+      { text: "Menginspirasi orang lain", type: "I" },
+      { text: "Membangun kepercayaan", type: "S" },
+      { text: "Memastikan keakuratan", type: "C" }
     ]
   },
   {
-    text: "I prefer communication that is...",
+    text: "Saya lebih suka komunikasi yang...",
     options: [
-      { text: "Direct and to the point", type: "D" },
-      { text: "Warm and engaging", type: "I" },
-      { text: "Friendly and patient", type: "S" },
-      { text: "Detailed and factual", type: "C" }
+      { text: "Langsung dan to the point", type: "D" },
+      { text: "Hangat dan menarik", type: "I" },
+      { text: "Ramah dan sabar", type: "S" },
+      { text: "Terperinci dan faktual", type: "C" }
     ]
   },
   {
-    text: "I value most in a team...",
+    text: "Yang paling saya hargai dalam tim adalah...",
     options: [
-      { text: "Results and performance", type: "D" },
-      { text: "Energy and enthusiasm", type: "I" },
-      { text: "Harmony and cooperation", type: "S" },
-      { text: "Quality and precision", type: "C" }
+      { text: "Hasil dan kinerja", type: "D" },
+      { text: "Energi dan antusiasme", type: "I" },
+      { text: "Harmoni dan kerja sama", type: "S" },
+      { text: "Kualitas dan ketepatan", type: "C" }
     ]
   }
 ] as const;
@@ -139,7 +139,6 @@ export default function Quiz() {
     let maxType: Answer = "D";
     let maxVal = counts["D"];
 
-    // Tie-breaker order D > I > S > C
     if (counts["I"] > maxVal) { maxType = "I"; maxVal = counts["I"]; }
     if (counts["S"] > maxVal) { maxType = "S"; maxVal = counts["S"]; }
     if (counts["C"] > maxVal) { maxType = "C"; maxVal = counts["C"]; }
@@ -159,8 +158,8 @@ export default function Quiz() {
       },
       onError: () => {
         toast({
-          title: "Something went wrong",
-          description: "We couldn't save your results. Please try again.",
+          title: "Terjadi kesalahan",
+          description: "Kami tidak dapat menyimpan hasilmu. Silakan coba lagi.",
           variant: "destructive"
         });
       }
@@ -171,7 +170,7 @@ export default function Quiz() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <p className="text-lg font-medium">Analyzing your responses...</p>
+        <p className="text-lg font-medium">Menganalisis jawabanmu...</p>
       </div>
     );
   }
@@ -189,17 +188,18 @@ export default function Quiz() {
           >
             <form onSubmit={handleStart} className="space-y-6">
               <div className="space-y-2 text-center mb-8">
-                <h2 className="text-3xl font-bold tracking-tight">Welcome</h2>
-                <p className="text-muted-foreground">Let's start by getting to know you.</p>
+                <h2 className="text-3xl font-bold tracking-tight">Selamat Datang</h2>
+                <p className="text-muted-foreground">Mari mulai dengan saling mengenal.</p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-base">What is your name?</Label>
+                <Label htmlFor="name" className="text-base">Siapa namamu?</Label>
                 <Input
                   id="name"
+                  data-testid="input-name"
                   size={32}
                   className="h-12 text-lg px-4"
-                  placeholder="Enter your name"
+                  placeholder="Masukkan namamu"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
@@ -208,10 +208,11 @@ export default function Quiz() {
 
               <Button 
                 type="submit" 
+                data-testid="button-continue"
                 className="w-full h-12 text-lg" 
                 disabled={!name.trim()}
               >
-                Continue
+                Lanjutkan
               </Button>
             </form>
           </motion.div>
@@ -226,7 +227,7 @@ export default function Quiz() {
           >
             <div className="space-y-4">
               <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                <span>Question {currentQuestion + 1} of {QUESTIONS.length}</span>
+                <span>Pertanyaan {currentQuestion + 1} dari {QUESTIONS.length}</span>
                 <span>{Math.round(((currentQuestion) / QUESTIONS.length) * 100)}%</span>
               </div>
               <Progress value={(currentQuestion / QUESTIONS.length) * 100} className="h-2" />
@@ -241,6 +242,7 @@ export default function Quiz() {
                 {QUESTIONS[currentQuestion].options.map((option, i) => (
                   <Button
                     key={i}
+                    data-testid={`button-option-${i}`}
                     variant="outline"
                     className="h-auto py-4 px-6 text-left justify-start text-base font-normal whitespace-normal w-full"
                     onClick={() => handleAnswer(option.type as Answer)}
