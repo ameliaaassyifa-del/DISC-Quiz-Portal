@@ -1,0 +1,1 @@
+- [Supabase anon permissions](supabase-anon-permissions.md) — the anon key can submit/read DISC results, while destructive operations may be denied by RLS policies.

@@ -1,13 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.VITE_SUPABASE_URL?.trim();
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY?.trim();
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY environment variables");
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing Supabase Secrets: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be configured",
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
 
 export interface DiscResultRow {
   id: number;
@@ -29,4 +36,14 @@ export function rowToResult(row: DiscResultRow) {
     disc_type: row.dominant,
     created_at: row.created_at,
   };
+}
+
+export async function checkSupabaseConnection(): Promise<void> {
+  const { error } = await supabase
+    .from("disc_results")
+    .select("id", { head: true, count: "exact" });
+
+  if (error) {
+    throw new Error(`Supabase disc_results check failed: ${error.message}`);
+  }
 }

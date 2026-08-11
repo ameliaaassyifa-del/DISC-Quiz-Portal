@@ -101,13 +101,19 @@ router.delete("/results/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("disc_results")
     .delete()
+    .select("id")
     .eq("id", params.data.id);
 
   if (error) {
     res.status(500).json({ error: error.message });
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    res.status(404).json({ error: "Result not found" });
     return;
   }
 
