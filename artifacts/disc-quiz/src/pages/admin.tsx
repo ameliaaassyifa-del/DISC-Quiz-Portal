@@ -1,5 +1,5 @@
-import { useListResults, useGetStats, useDeleteResult, getListResultsQueryKey, getGetStatsQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const TYPE_LABELS: Record<string, string> = {
   D: "Dominant",
@@ -16,30 +21,40 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function Admin() {
-  const queryClient = useQueryClient();
   const { toast } = useToast();
-  
-  const { data: results, isLoading: isLoadingResults } = useListResults();
-  const { data: stats, isLoading: isLoadingStats } = useGetStats();
-  
-  const deleteMutation = useDeleteResult();
+  const [results, setResults] = useState<any[]>([]);
+  const [tableName, setTableName] = useState<"quiz_results" | "results">("quiz_results");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDelete = (id: number) => {
+  const loadData = async () => {
+    setIsLoading(true);
+    let res = await supabase.from("quiz_results").select("*").order("created_at", { ascending: false });
+    if (res.error) {
+      res = await supabase.from("results").select("*").order("created_at", { ascending: false });
+      if (!res.error) setTableName("results");
+    } else {
+      setTableName("quiz_results");
+    }
+    if (!res.error && res.data) {
+      setResults(res.data);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleDelete = async (id: number) => {
     if (!window.confirm("Apakah kamu yakin ingin menghapus hasil ini?")) return;
 
-    deleteMutation.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListResultsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
-          toast({ title: "Hasil berhasil dihapus" });
-        },
-        onError: () => {
-          toast({ title: "Gagal menghapus hasil", variant: "destructive" });
-        }
-      }
-    );
+    const { error } = await supabase.from(tableName).delete().eq("id", id);
+    if (!error) {
+      setResults(prev => prev.filter(r => r.id !== id));
+      toast({ title: "Hasil berhasil dihapus" });
+    } else {
+      toast({ title: "Gagal menghapus hasil", variant: "destructive" });
+    }
   };
 
   const getStyleForType = (type: string) => {
@@ -52,7 +67,7 @@ export default function Admin() {
     }
   };
 
-  if (isLoadingResults || isLoadingStats) {
+  if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -60,49 +75,49 @@ export default function Admin() {
     );
   }
 
+  const total = results.length;
+  const countByType = (t: string) => results.filter(r => r.disc_type === t).length;
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-6xl">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight" data-testid="text-admin-title">Dasbor Admin</h1>
       </div>
 
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Responden</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold" data-testid="text-total-count">{stats.total}</div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Responden</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold" data-testid="text-total-count">{total}</div>
+          </CardContent>
+        </Card>
+        
+        {['D', 'I', 'S', 'C'].map(type => {
+          const count = countByType(type);
+          const percent = total > 0 ? Math.round((count / total) * 100) : 0;
           
-          {['D', 'I', 'S', 'C'].map(type => {
-            const statForType = stats.by_type.find(s => s.disc_type === type);
-            const count = statForType ? statForType.count : 0;
-            const percent = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-            
-            return (
-              <Card key={type}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">{TYPE_LABELS[type]}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid={`text-count-${type}`}>{count}</div>
-                  <p className="text-xs text-muted-foreground">{percent}% dari total</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+          return (
+            <Card key={type}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{TYPE_LABELS[type]}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold" data-testid={`text-count-${type}`}>{count}</div>
+                <p className="text-xs text-muted-foreground">{percent}% dari total</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Hasil Terbaru</CardTitle>
         </CardHeader>
         <CardContent>
-          {results && results.length > 0 ? (
+          {results.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -123,7 +138,7 @@ export default function Admin() {
                       <TableCell className="font-medium">{result.name}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStyleForType(result.disc_type)}`}>
-                          {result.disc_type} - {TYPE_LABELS[result.disc_type] ?? result.disc_type}
+                          {TYPE_LABELS[result.disc_type] ?? result.disc_type}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">

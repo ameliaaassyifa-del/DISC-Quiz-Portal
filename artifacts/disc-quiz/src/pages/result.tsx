@@ -1,8 +1,14 @@
-import { useGetResult } from "@workspace/api-client-react";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const DISC_INFO = {
   D: {
@@ -48,11 +54,31 @@ export default function Result() {
   const idStr = searchParams.get("id");
   const id = idStr ? parseInt(idStr, 10) : null;
 
-  const { data: result, isLoading, isError } = useGetResult(id as number, {
-    query: {
-      enabled: !!id
+  const [result, setResult] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    if (!id) {
+      setIsLoading(false);
+      return;
     }
-  });
+
+    async function fetchResult() {
+      let res = await supabase.from("quiz_results").select("*").eq("id", id).single();
+      if (res.error) {
+        res = await supabase.from("results").select("*").eq("id", id).single();
+      }
+      if (res.error || !res.data) {
+        setIsError(true);
+      } else {
+        setResult(res.data);
+      }
+      setIsLoading(false);
+    }
+
+    fetchResult();
+  }, [id]);
 
   if (!id) {
     return (

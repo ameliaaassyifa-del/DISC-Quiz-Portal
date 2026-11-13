@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSubmitResult } from "@workspace/api-client-react";
+import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 type Answer = "D" | "I" | "S" | "C";
 
@@ -112,8 +117,7 @@ export default function Quiz() {
   const [name, setName] = useState("");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
-  
-  const submitMutation = useSubmitResult();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +136,8 @@ export default function Quiz() {
     }
   };
 
-  const calculateAndSubmit = (finalAnswers: Answer[]) => {
+  const calculateAndSubmit = async (finalAnswers: Answer[]) => {
+    setIsSubmitting(true);
     const counts = { D: 0, I: 0, S: 0, C: 0 };
     finalAnswers.forEach(ans => counts[ans]++);
 
@@ -143,30 +148,35 @@ export default function Quiz() {
     if (counts["S"] > maxVal) { maxType = "S"; maxVal = counts["S"]; }
     if (counts["C"] > maxVal) { maxType = "C"; maxVal = counts["C"]; }
 
-    submitMutation.mutate({
-      data: {
-        name: name.trim(),
-        dominance: counts["D"],
-        influence: counts["I"],
-        steadiness: counts["S"],
-        conscientiousness: counts["C"],
-        disc_type: maxType
+    const payload = {
+      name: name.trim(),
+      dominance: counts["D"],
+      influence: counts["I"],
+      steadiness: counts["S"],
+      conscientiousness: counts["C"],
+      disc_type: maxType
+    };
+
+    try {
+      let res = await supabase.from("quiz_results").insert([payload]).select().single();
+      if (res.error) {
+        res = await supabase.from("results").insert([payload]).select().single();
       }
-    }, {
-      onSuccess: (data) => {
-        setLocation(`/result?id=${data.id}`);
-      },
-      onError: () => {
-        toast({
-          title: "Terjadi kesalahan",
-          description: "Kami tidak dapat menyimpan hasilmu. Silakan coba lagi.",
-          variant: "destructive"
-        });
+      if (res.error || !res.data) {
+        throw res.error || new Error("Gagal menyimpan");
       }
-    });
+      setLocation(`/result?id=${res.data.id}`);
+    } catch {
+      setIsSubmitting(false);
+      toast({
+        title: "Terjadi kesalahan",
+        description: "Kami tidak dapat menyimpan hasilmu. Silakan coba lagi.",
+        variant: "destructive"
+      });
+    }
   };
 
-  if (submitMutation.isPending) {
+  if (isSubmitting) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
