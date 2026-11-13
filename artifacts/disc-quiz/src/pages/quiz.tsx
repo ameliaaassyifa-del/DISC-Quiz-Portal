@@ -126,11 +126,12 @@ export default function Quiz() {
   };
 
   const handleAnswer = (type: Answer) => {
+    if (isSubmitting) return;
     const newAnswers = [...answers, type];
     setAnswers(newAnswers);
 
     if (currentQuestion < QUESTIONS.length - 1) {
-      setCurrentQuestion(curr => curr + 1);
+      setCurrentQuestion(curr => Math.min(curr + 1, QUESTIONS.length - 1));
     } else {
       calculateAndSubmit(newAnswers);
     }
@@ -166,11 +167,12 @@ export default function Quiz() {
         throw res.error || new Error("Gagal menyimpan");
       }
       setLocation(`/result?id=${res.data.id}`);
-    } catch {
+    } catch (err: any) {
+      console.error("Supabase insert error:", err);
       setIsSubmitting(false);
       toast({
         title: "Terjadi kesalahan",
-        description: "Kami tidak dapat menyimpan hasilmu. Silakan coba lagi.",
+        description: err?.message || "Kami tidak dapat menyimpan hasilmu. Silakan coba lagi.",
         variant: "destructive"
       });
     }
@@ -184,6 +186,8 @@ export default function Quiz() {
       </div>
     );
   }
+
+  const question = QUESTIONS[currentQuestion] ?? QUESTIONS[QUESTIONS.length - 1];
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 w-full max-w-2xl mx-auto">
@@ -245,11 +249,11 @@ export default function Quiz() {
 
             <div className="bg-card p-6 md:p-8 rounded-2xl border shadow-sm">
               <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center leading-tight">
-                {QUESTIONS[currentQuestion].text}
+                {question.text}
               </h2>
               
               <div className="grid gap-4">
-                {QUESTIONS[currentQuestion].options.map((option, i) => (
+                {question.options.map((option, i) => (
                   <Button
                     key={i}
                     data-testid={`button-option-${i}`}
