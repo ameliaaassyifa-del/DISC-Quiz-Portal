@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 const TYPE_LABELS: Record<string, string> = {
   D: "Dominant",
@@ -23,20 +18,17 @@ const TYPE_LABELS: Record<string, string> = {
 export default function Admin() {
   const { toast } = useToast();
   const [results, setResults] = useState<any[]>([]);
-  const [tableName, setTableName] = useState<"quiz_results" | "results">("quiz_results");
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
     setIsLoading(true);
-    let res = await supabase.from("quiz_results").select("*").order("created_at", { ascending: false });
-    if (res.error) {
-      res = await supabase.from("results").select("*").order("created_at", { ascending: false });
-      if (!res.error) setTableName("results");
-    } else {
-      setTableName("quiz_results");
-    }
-    if (!res.error && res.data) {
-      setResults(res.data);
+    const { data, error } = await supabase
+      .from("disc_results")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setResults(data);
     }
     setIsLoading(false);
   };
@@ -48,7 +40,7 @@ export default function Admin() {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Apakah kamu yakin ingin menghapus hasil ini?")) return;
 
-    const { error } = await supabase.from(tableName).delete().eq("id", id);
+    const { error } = await supabase.from("disc_results").delete().eq("id", id);
     if (!error) {
       setResults(prev => prev.filter(r => r.id !== id));
       toast({ title: "Hasil berhasil dihapus" });
@@ -76,7 +68,7 @@ export default function Admin() {
   }
 
   const total = results.length;
-  const countByType = (t: string) => results.filter(r => r.disc_type === t).length;
+  const countByType = (t: string) => results.filter(r => r.dominant === t).length;
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-6xl">
@@ -130,33 +122,36 @@ export default function Admin() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {results.map((result) => (
-                    <TableRow key={result.id} data-testid={`row-result-${result.id}`}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(result.created_at), "d MMM yyyy", { locale: localeId })}
-                      </TableCell>
-                      <TableCell className="font-medium">{result.name}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStyleForType(result.disc_type)}`}>
-                          {TYPE_LABELS[result.disc_type] ?? result.disc_type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {result.dominance} / {result.influence} / {result.steadiness} / {result.conscientiousness}
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          data-testid={`button-delete-${result.id}`}
-                          onClick={() => handleDelete(result.id)}
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {results.map((result) => {
+                    const scores = result.scores || { D: 0, I: 0, S: 0, C: 0 };
+                    return (
+                      <TableRow key={result.id} data-testid={`row-result-${result.id}`}>
+                        <TableCell className="whitespace-nowrap">
+                          {format(new Date(result.created_at), "d MMM yyyy", { locale: localeId })}
+                        </TableCell>
+                        <TableCell className="font-medium">{result.name}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStyleForType(result.dominant)}`}>
+                            {TYPE_LABELS[result.dominant] ?? result.dominant}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {scores.D ?? 0} / {scores.I ?? 0} / {scores.S ?? 0} / {scores.C ?? 0}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            data-testid={`button-delete-${result.id}`}
+                            onClick={() => handleDelete(result.id)}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

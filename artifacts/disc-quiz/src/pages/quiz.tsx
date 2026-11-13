@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 type Answer = "D" | "I" | "S" | "C";
 
@@ -151,22 +146,27 @@ export default function Quiz() {
 
     const payload = {
       name: name.trim(),
-      dominance: counts["D"],
-      influence: counts["I"],
-      steadiness: counts["S"],
-      conscientiousness: counts["C"],
-      disc_type: maxType
+      dominant: maxType,
+      scores: {
+        D: counts["D"],
+        I: counts["I"],
+        S: counts["S"],
+        C: counts["C"]
+      }
     };
 
     try {
-      let res = await supabase.from("quiz_results").insert([payload]).select().single();
-      if (res.error) {
-        res = await supabase.from("results").insert([payload]).select().single();
+      const { data, error } = await supabase
+        .from("disc_results")
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error || !data) {
+        throw error || new Error("Gagal menyimpan hasil ke Supabase");
       }
-      if (res.error || !res.data) {
-        throw res.error || new Error("Gagal menyimpan");
-      }
-      setLocation(`/result?id=${res.data.id}`);
+
+      setLocation(`/result?id=${data.id}`);
     } catch (err: any) {
       console.error("Supabase insert error:", err);
       setIsSubmitting(false);

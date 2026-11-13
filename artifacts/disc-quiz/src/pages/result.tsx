@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 const DISC_INFO = {
   D: {
@@ -65,14 +60,16 @@ export default function Result() {
     }
 
     async function fetchResult() {
-      let res = await supabase.from("quiz_results").select("*").eq("id", id).single();
-      if (res.error) {
-        res = await supabase.from("results").select("*").eq("id", id).single();
-      }
-      if (res.error || !res.data) {
+      const { data, error } = await supabase
+        .from("disc_results")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
         setIsError(true);
       } else {
-        setResult(res.data);
+        setResult(data);
       }
       setIsLoading(false);
     }
@@ -110,15 +107,16 @@ export default function Result() {
     );
   }
 
-  const type = result.disc_type as keyof typeof DISC_INFO;
+  const type = result.dominant as keyof typeof DISC_INFO;
   const info = DISC_INFO[type];
+  const scores = result.scores || { D: 0, I: 0, S: 0, C: 0 };
 
-  const total = result.dominance + result.influence + result.steadiness + result.conscientiousness;
+  const total = (scores.D || 0) + (scores.I || 0) + (scores.S || 0) + (scores.C || 0) || 1;
   const percentages = {
-    D: Math.round((result.dominance / total) * 100),
-    I: Math.round((result.influence / total) * 100),
-    S: Math.round((result.steadiness / total) * 100),
-    C: Math.round((result.conscientiousness / total) * 100),
+    D: Math.round(((scores.D || 0) / total) * 100),
+    I: Math.round(((scores.I || 0) / total) * 100),
+    S: Math.round(((scores.S || 0) / total) * 100),
+    C: Math.round(((scores.C || 0) / total) * 100),
   };
 
   return (
